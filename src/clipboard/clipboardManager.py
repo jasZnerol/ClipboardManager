@@ -1,15 +1,12 @@
 from functools import partial
 from pynput import keyboard
 import win32clipboard as clipboard
-
 import time
-
 
 
 def get_clipboard_data():
   clipboard.OpenClipboard()
   data = set()
-
   format_id = clipboard.EnumClipboardFormats(0)
   while format_id:
     try:
