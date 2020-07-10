@@ -1,49 +1,37 @@
 from pynput import keyboard
 import clipboard
 
-
-current = set() # Currently pressed key. Required for 
 memory  = []    # Memory of the last stored clipboard
 
 def on_press(key):
-
-  rm_memory_modifier    = { keyboard.Key.ctrl_l, keyboard.Key.alt_l, keyboard.KeyCode.from_char('r') }
-  clr_memory_modifier   = { keyboard.Key.ctrl_l, keyboard.Key.alt_l, keyboard.KeyCode.from_char('d') }
-  print_memory_modifier = { keyboard.Key.ctrl_l, keyboard.Key.alt_l, keyboard.KeyCode.from_char('p') }
-  
   # Quit program
   if key == keyboard.Key.esc:
     listener.stop()
     exit()
 
-  # Check for copy combination
-  if hasattr(key, 'char') and key.char == '\x03': # \x03 == CTRL + C
+  # Check for copy combination: CTRL + C
+  if hasattr(key, 'char') and key.char == '\x03':  
     data = clipboard.paste()
     if data not in memory:
       memory.append(data)
 
-  # Check for remove key combination
-  if key in rm_memory_modifier:
-    current.add(key)
-    if all(k in current for k in rm_memory_modifier):
-      if memory != []:
-        print("removed\t  \"" + str(memory.pop()) + "\"\tfrom clipboard")
+  # Check for remove key combination: CTRL + ALT + R
+  if hasattr(key, 'vk') and hasattr(key, 'char') and key.vk == 82 and key.char == None:
+    if memory != []:
+      print("removed\t  \"" + str(memory.pop()) + "\"\tfrom clipboard")
 
-  # Check for remove key combination
-  if key in clr_memory_modifier:
-    current.add(key)
-    if all(k in current for k in clr_memory_modifier):
-      memory.clear()
-      print("memory cleared")
+  # Check for clear key combination: CTRL + ALT + C
+  if hasattr(key, 'vk') and hasattr(key, 'char') and key.vk == 67 and key.char == None:
+    memory.clear()
+    print("memory cleared")
 
-  # Check for print key combination
-  if key in print_memory_modifier:
-    current.add(key)
-    if all(k in current for k in print_memory_modifier):
-      print(memory)
+  # Check for print key combination: CTRL + ALT + P
+  if hasattr(key, 'vk') and hasattr(key, 'char') and key.vk == 80 and key.char == None:
+    print(memory)
+
 
 def on_release(key):
-  current.clear()
+  pass
 
 # Collect events until released
 with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
