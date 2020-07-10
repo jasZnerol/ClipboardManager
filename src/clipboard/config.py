@@ -5,6 +5,8 @@ max_string_length   =   5000              # Maximum length of a copied string in
 # Hotkey settings
 escape_key          =   '<esc>'           # To close the clipBoardManager
 copy_key            =   '<ctrl>+c'        # Copy to clipboard and store in memory list
-restore_key         =   '<ctrl>+<alt>+r'  # ???
+restore_key         =   '<ctrl>+<alt>+r'  # Restores the last memory entry to clipboard
 clear_key           =   '<ctrl>+<alt>+c'  # Clear the entire memory list (and the clipboard?)
 print_key           =   '<ctrl>+<alt>+p'  # Print the current memory list in the console
+
+format_id_allow_set = {1, 7, 13, 15}          # Allowed format_ids for the clipboard to store/get
