@@ -2,7 +2,7 @@ from pynput import keyboard
 import clipboard
 #import win32clipboard as clipboard
 
-memory  = []    # Memory of the last stored clipboard
+memory  = []    # Memory of the last stored clipboards
 
 def on_press_STOP():
   listener.stop()
