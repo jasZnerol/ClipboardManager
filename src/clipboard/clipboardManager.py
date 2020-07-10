@@ -1,7 +1,7 @@
 from pynput import keyboard
 import clipboard
 
-memory  = []    # Memory of the last stored clipboard
+memory  = []    # Memory of the last stored clipboards
 
 def on_press(key):
   # Quit program
