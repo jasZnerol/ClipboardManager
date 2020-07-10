@@ -1,4 +1,5 @@
 from functools import partial
+from pynput import keyboard
 import win32clipboard as clipboard
 
 import time
