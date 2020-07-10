@@ -33,7 +33,7 @@ memory  = []    # Memory of the last stored clipboards
 
 
 exit()
-def on_press_STOP():
+def on_press_ESC():
   listener.stop()
   exit()
 
@@ -55,7 +55,7 @@ def on_press_PRINT():
 
 # Add hotkeys with corresponding function
 with keyboard.GlobalHotKeys({
-  '<ctrl>+<alt>+s': on_press_STOP,
+  '<esc>': on_press_ESC,
   '<ctrl>+c': on_press_COPY,
   '<ctrl>+<alt>+r': on_press_REMOVE,
   '<ctrl>+<alt>+c': on_press_CLEAR,
