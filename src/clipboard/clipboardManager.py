@@ -1,40 +1,74 @@
-from functools import partial
+# Global dependencies
+## Data management
+import win32clipboard as clipboard
 import ctypes
 from ctypes import wintypes
+## Utils
+from functools import partial
 import keyboard
-import win32clipboard as clipboard
 import time
-import config
 import pythoncom
 
+# Local dependencies
+import config
+
+
+
+"""
+#############################
+######### History ###########
+#############################
+"""
 class ClipboardMemory(object):
   def __init__(self):
-    self._memory = []  # History of the clipboard
+    self._memory = []   # History of the clipboard
     self._idx    = -1   # Points towards the object that currently is in the clipboard
   
-  def __contians__(self, item):
-    print("printf_debugging")
+  def __contains__(self, item):
     return item in self._memory
 
   # Traverses backwards in the memory list
-  def restore(self): 
+  def backward(self): 
     restore_idx = self._idx - 1
     if restore_idx < 0 or restore_idx >= len(self._memory):
       return set()
     
     self._idx -= 1
     return self._memory[restore_idx]
-  
+
+  # Traverses forwards in the memory list
+  def forward(self):
+    restore_idx = self._idx + 1
+    if restore_idx < 0 or restore_idx >= len(self._memory):
+      return set()
+    self._idx += 1
+    print(self._memory[restore_idx])
+    return self._memory[restore_idx]
+
+  # Appends an element after the current element in the clipboard. All other element after that one get deleted.
   def add(self, data):
-    while self._idx < len(self._memory):
+    if len(self._memory) < 2:
+      self._memory.append(data)
+      self._idx += 1
+      return
+
+    while self._memory and self._idx < len(self._memory) - 1:
       self._memory.pop()
-
+    self._idx = len(self._memory)
     self._memory.append(data)
-
-  def clear(self):
-    self.memory = []
-
     
+  # Reset the memory and index to initialization state
+  def clear(self):
+    self._memory = []
+    self._idx    = -1 
+
+
+"""
+#############################
+######## Clipboard ##########
+#############################
+"""
+# Implements the _DROPFILES struct from C++ in a python class.
 class DROPFILES(ctypes.Structure):
   _fields_ = (('pFiles', wintypes.DWORD), # Offset of the file list
               ('pt',     wintypes.POINT), # Unused fields
@@ -43,7 +77,8 @@ class DROPFILES(ctypes.Structure):
                                           # If the value is zero, the file contains ANSI characters. 
                                           # Otherwise, it contains Unicode characters.
 
-def clip_files(file_list):
+# Sets a list of files to the clipboard.
+def set_files_to_clipboard(file_list):
   offset = ctypes.sizeof(DROPFILES)
   length = sum(len(p) + 1 for p in file_list) + 1
   size   = offset + length * ctypes.sizeof(ctypes.c_wchar)
@@ -73,6 +108,7 @@ def clip_files(file_list):
   except:
     pass
 
+# Returnes the data stored in the clipboard
 def get_clipboard_data():
   # Open clipboard context and get first format_id
   clipboard.OpenClipboard()
@@ -96,16 +132,16 @@ def get_clipboard_data():
   clipboard.CloseClipboard()
   return data
 
+# Stores any given and valid data in the clipboard
 def update_clipboard_data(data):
-  # Open clipboard context and get put the given data into it
+  # Open clipboard context and clear it
   clipboard.OpenClipboard()
-
   clipboard.EmptyClipboard()
 
   for format_id, entry in data:
     try:
       if(format_id == 15):
-        clip_files(entry)
+        set_files_to_clipboard(entry)
       else:
         clipboard.SetClipboardData(format_id, entry)
     except Exception as e:
@@ -114,44 +150,62 @@ def update_clipboard_data(data):
 
   clipboard.CloseClipboard()
 
-def on_press_copy():
-  time.sleep(0.5)
-  data = get_clipboard_data()
-  if data not in memory:
-    memory.append(data)
-    
 
-memory = ClipboardMemory()   
+
+"""
+#############################
+######### Keyboard ##########
+#############################
+"""
+# Start function for this module
+def start_clipboardManager():
+  memory = ClipboardMemory()   
   
-def on_press_restore():
-  print("restore")
+  def on_press_copy():
+    time.sleep(0.5)
+    data = get_clipboard_data()
+    if data not in memory:
+      memory.add(data)
+      print("copied")
+    
+  def on_press_backward():
+    update_clipboard_data(memory.backward())
+    print("backwards")
 
-  update_clipboard_data(memory.restore())
+  def on_press_forward():
+    update_clipboard_data(memory.forward())
+    print("forward")
 
-def on_press_clear():
-  memory.clear()
-  print("memory cleared")
+  def on_press_clear():
+    memory.clear()
+    print("memory cleared")
 
-def on_press_print():
-  print(memory._memory)
+  def on_press_print():
+    print(memory._memory)
 
-def on_press_restore_id(id):
-  #print("Restoring id {id}".format(id = id))
-  pass
-
-# Add hotkeys with corresponding function
-hotkey_set = {
-  ('ctrl+c', on_press_copy),
-  ('ctrl+alt+r', on_press_restore),
-  ('ctrl+alt+c', on_press_clear),
-  ('ctrl+alt+p', on_press_print)
-}
-
-for id in range(10):
-  hotkey_set.add(('ctrl+alt+{id}'.format(id = id), partial(on_press_restore_id, id)))
+  def on_press_restore_id(id):
+    #print("Restoring id {id}".format(id = id))
+    pass
 
 
-for keys, func in hotkey_set:
-  keyboard.add_hotkey(keys, func)
+  # Add hotkeys with corresponding function
+  hotkey_set = {
+    ('ctrl+c',     on_press_copy),
+    ('ctrl+alt+r', on_press_backward),
+    ('ctrl+alt+f', on_press_forward),
+    ('ctrl+alt+c', on_press_clear),
+    ('ctrl+alt+p', on_press_print)
+  }
 
-keyboard.wait('esc')
+  # Create and add selector functions with addressing by number
+  for id in range(10):
+    hotkey_set.add(('ctrl+alt+{id}'.format(id = id), partial(on_press_restore_id, id)))
+  
+  # Add hotkey listeners to the keyboard object
+  for keys, func in hotkey_set:
+    keyboard.add_hotkey(keys, func)
+
+  # Wait until escape was pressed and end the programm
+  keyboard.wait('esc')
+
+start_clipboardManager()
