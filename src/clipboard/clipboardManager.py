@@ -1,5 +1,5 @@
 
-#!C:/Users/%USERNAME%/AppData/Local/Microsoft/WindowsApps/python3.8.exe
+
 
 ## Data management
 import win32clipboard as clipboard
@@ -211,4 +211,3 @@ def start_clipboardManager():
   # Wait until escape was pressed and end the programm
   keyboard.wait('esc')
 
-start_clipboardManager()
