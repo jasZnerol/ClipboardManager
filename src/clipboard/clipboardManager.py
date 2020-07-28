@@ -1,8 +1,11 @@
-# Global dependencies
+
+#!C:/Users/%USERNAME%/AppData/Local/Microsoft/WindowsApps/python3.8.exe
+
 ## Data management
 import win32clipboard as clipboard
 import ctypes
 from ctypes import wintypes
+
 ## Utils
 from functools import partial
 import keyboard
