@@ -1,5 +1,5 @@
 ## Data management
-import win32clipboard as clipboard
+import win32clipboard
 import ctypes
 from ctypes import wintypes
 
@@ -9,10 +9,10 @@ import keyboard
 import time
 import pythoncom
 
-# Local dependencies
-import clipboard.config
+## Local dependencies
+import clipboard.config as config
 
-"""
+"""clipboardclipboardclipboard__contains____contains____contains__clipboardclipboardclipboard
 #############################
 ######### History ###########
 #############################
@@ -109,13 +109,13 @@ def set_files_to_clipboard(file_list):
 # Returnes the data stored in the clipboard
 def get_clipboard_data():
   # Open clipboard context and get first format_id
-  clipboard.OpenClipboard()
+  win32clipboard.OpenClipboard()
   data = set()
 
   format_id = 0
   
   # Iterate over all format_ids and get the data for the valid ones
-  while format_id := clipboard.EnumClipboardFormats(format_id):
+  while format_id := win32clipboard.EnumClipboardFormats(format_id):
     
     # Check if format id is allowed
     if format_id not in config.format_id_allow_set:
@@ -123,30 +123,30 @@ def get_clipboard_data():
     
     # Get the current data for this format_id from the clipboard
     try:
-      data.add((format_id, clipboard.GetClipboardData(format_id)))
+      data.add((format_id, win32clipboard.GetClipboardData(format_id)))
     except:
       print(format_id)
 
-  clipboard.CloseClipboard()
+  win32clipboard.CloseClipboard()
   return data
 
 # Stores any given and valid data in the clipboard
 def update_clipboard_data(data):
   # Open clipboard context and clear it
-  clipboard.OpenClipboard()
-  clipboard.EmptyClipboard()
+  win32clipboard.OpenClipboard()
+  win32clipboard.EmptyClipboard()
 
   for format_id, entry in data:
     try:
       if(format_id == 15):
         set_files_to_clipboard(entry)
       else:
-        clipboard.SetClipboardData(format_id, entry)
+        win32clipboard.SetClipboardData(format_id, entry)
     except Exception as e:
       print(e)
       print(format_id)
 
-  clipboard.CloseClipboard()
+  win32clipboard.CloseClipboard()
 
 
 
@@ -205,4 +205,3 @@ def start_clipboardManager():
 
   # Wait until escape was pressed and end the programm
   keyboard.wait('esc')
-
