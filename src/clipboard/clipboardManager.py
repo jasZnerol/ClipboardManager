@@ -10,9 +10,7 @@ import time
 import pythoncom
 
 # Local dependencies
-import config
-
-
+import clipboard.config
 
 """
 #############################
