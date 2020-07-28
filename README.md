@@ -12,7 +12,8 @@ if it has not been build yet.
 ```
 
 # Running the program
-As there is no finished build available currently you can only run this program by directly calling it.
+As there is no finished build available currently you can only run this program by directly calling it. Later there will be a release version as an
+executable that will run in your background allowing a much easier usage.
 ```sh
 .\start.bat
 ```
