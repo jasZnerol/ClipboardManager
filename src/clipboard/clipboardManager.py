@@ -12,7 +12,7 @@ import pythoncom
 ## Local dependencies
 import clipboard.config as config
 
-"""clipboardclipboardclipboard__contains____contains____contains__clipboardclipboardclipboard
+"""
 #############################
 ######### History ###########
 #############################
@@ -102,7 +102,7 @@ def set_files_to_clipboard(file_list):
   stg = pythoncom.STGMEDIUM()
   stg.set(pythoncom.TYMED_HGLOBAL, buf)
   try:
-    clipboard.SetClipboardData(clipboard.CF_HDROP, stg.data)
+    clipboard.SetClipboardData(win32clipboard.CF_HDROP, stg.data)
   except:
     pass
 
