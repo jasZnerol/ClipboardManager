@@ -102,7 +102,7 @@ def set_files_to_clipboard(file_list):
   stg = pythoncom.STGMEDIUM()
   stg.set(pythoncom.TYMED_HGLOBAL, buf)
   try:
-    clipboard.SetClipboardData(win32clipboard.CF_HDROP, stg.data)
+    win32clipboard.SetClipboardData(win32clipboard.CF_HDROP, stg.data)
   except:
     pass
 
