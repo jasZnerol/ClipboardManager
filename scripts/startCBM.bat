@@ -17,5 +17,5 @@ goto start_ClipboardManager
 :start_ClipboardManager
 echo ClipboardManager is now running. Press ESC to quit.
 echo.
-.\src\clipboard\clipboardManager.py
+.\src\app.py
 goto deactivate_venv
