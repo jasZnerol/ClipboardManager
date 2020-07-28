@@ -1,6 +1,3 @@
-
-
-
 ## Data management
 import win32clipboard as clipboard
 import ctypes
