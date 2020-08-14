@@ -18,66 +18,95 @@ Properties:
   - Fixed Port
   - Implemented with sockets
 """
-
 import socket
 import select
+import os
+import time
+from queue import Queue
 import threading
-from config import PORT, MAX_DATA_LEN
+from config import PORT, BUFFER_SIZE, CLIENT_ACCEPT_LEN
 
-class Server(object):
-
+class Server(threading.Thread):
+  # Create server that handels incoming connection and passes them to the slave manager
   def __init__(self):
+    super().__init__()
     self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    
     self.connectTo = ('localhost', PORT)
     self.socket.bind(self.connectTo)
-    self.socket.listen(MAX_ACCEPT_LEN)
-    self.slaves = []
+    self.slave_manager = SlaveManager()
+    self.slave_manager.start()
   
-  def start(self):
+  def run(self):
+    self.socket.listen(CLIENT_ACCEPT_LEN)
+    
     while True:
-      # accept connections from outside
-      clientsocket, address = self.socket.accept()
-      # now do something with the clientsocket
-      # in this case, we'll pretend this is a threaded server
-      new_slave = Slave(clientsocket, address)
-      new_slave.start()
-      self.slaves.append(new_slave)
-
+      try:
+        clientsocket, address = self.socket.accept()
+      except OSError:
+        print("Closing server")
+        break
+      
+      self.slave_manager.add_slave(clientsocket)
+    
   def stop(self):
+    self.slave_manager.shutdown()
+    self.slave_manager.join()
+    self.socket.close()
+
+class SlaveManager(threading.Thread):
+  # Create slave manager that handels all socket connections and incoming data
+  def __init__(self):
+    super().__init__()
+    self.stop = False
+    self.slaves = []
+    
+  def add_slave(self, slave):
+    self.slaves.append(slave)
+
+  def remove_slave(self, slave):
+    print("Closing socket")
+    slave.shutdown(socket.SHUT_RDWR)
+    slave.close()
+    self.slaves.remove(slave)
+
+  def shutdown(self):
+    self.stop = True
+    time.sleep(1)
     for slave in self.slaves:
-      slave.shutdown()
+      slave.shutdown(socket.SHUT_RDWR)
+      slave.close()
+    
 
-    for slave in self.slaves:
-      slave.join()
+  def run(self):
+    while not self.stop:
+      updates = []
+      try:
+        ready_to_read, ready_to_write, in_error = [], [], []
+        if self.slaves:
+          ready_to_read, ready_to_write, in_error = select.select(self.slaves, self.slaves, [], 5)
+        else:
+          time.sleep(5)
+      except select.error:
+        print('connection error')
 
-class Slave(threading.Thread):
-    def __init__(self, socket, address):
-      super().__init__()
-      self.socket = socket
-      self.address = address
+      for sock in ready_to_read:
+        data = sock.recv(BUFFER_SIZE)
+        # Check if connection is closed
+        if not data:
+          self.remove_slave(sock)
+          ready_to_write.remove(sock)
+          continue
 
-    def shutdown(self):
-        self.socket.shutdown(socket.SHUT_RDWR)
+        updates.append(data)
+        # Give data to clipboard manager
+        print('received:', data)
 
-    def run(self):
-      while True:
-        try:
-          ready_to_read, ready_to_write, in_error = select.select([self.socket], [self.socket], [], 5)
-        except select.error:
-          self.socket.shutdown(socket.SHUT_RDWR)    # 0 = done receiving, 1 = done sending, 2 = both
-          self.socket.close()
-          # connection error event here, maybe reconnect
-          print('connection error')
-          break
-        if len(ready_to_read) > 0:
-          recv = self.socket.recv(2048)
-          # do stuff with received data
-          print('received:', recv)
-        #if len(ready_to_write) > 0:
-        #  # connection established, send some stuff
-        #  conn.send('some stuff')
-
+      for update in updates:
+        for sock in ready_to_write:
+          sock.send(update)
 
 if __name__ == "__main__":
   server = Server()
   server.start()
+  
