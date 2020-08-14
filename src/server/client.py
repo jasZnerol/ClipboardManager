@@ -1,15 +1,15 @@
 import socket
-from server.config import PORT
+from config import PORT
 
 class Client(object):
   def __init__(self):
-    self.socket = socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.connectTo = ('localhost', PORT)
-    socket.connect(self.connectTo)
+    self.socket.connect(self.connectTo)
 
   def send(self, data):
-    if isinstance(data, bytes):
-      data = bytes(data)
+    if not isinstance(data, bytes):
+      data = bytes(data, "utf-8")
     self.socket.sendall(data)
 
   def close(self):
