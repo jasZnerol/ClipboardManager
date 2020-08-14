@@ -30,7 +30,7 @@ class Server(object):
     self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.connectTo = ('localhost', PORT)
     self.socket.bind(self.connectTo)
-    self.socket.listen(5)
+    self.socket.listen(MAX_ACCEPT_LEN)
     self.slaves = []
   
   def start(self):
@@ -62,26 +62,22 @@ class Slave(threading.Thread):
     def run(self):
       while True:
         try:
-          ready_to_read, ready_to_write, in_error = select.select([conn,], [conn,], [], 5)
-          except select.error:
-              conn.shutdown(2)    # 0 = done receiving, 1 = done sending, 2 = both
-              conn.close()
-              # connection error event here, maybe reconnect
-              print 'connection error'
-              break
-          if len(ready_to_read) > 0:
-              recv = conn.recv(2048)
-              # do stuff with received data
-              print 'received:', recv
-          if len(ready_to_write) > 0:
-              # connection established, send some stuff
-              conn.send('some stuff')
-        data = self.socket.recv(MAX_DATA_LEN)
-        if data:
-          print(data)
-      self.socket.close()
-                
+          ready_to_read, ready_to_write, in_error = select.select([self.socket], [self.socket], [], 5)
+        except select.error:
+          self.socket.shutdown(socket.SHUT_RDWR)    # 0 = done receiving, 1 = done sending, 2 = both
+          self.socket.close()
+          # connection error event here, maybe reconnect
+          print('connection error')
+          break
+        if len(ready_to_read) > 0:
+          recv = self.socket.recv(2048)
+          # do stuff with received data
+          print('received:', recv)
+        #if len(ready_to_write) > 0:
+        #  # connection established, send some stuff
+        #  conn.send('some stuff')
+
 
 if __name__ == "__main__":
-  s = Server()
-  s.start()
+  server = Server()
+  server.start()
