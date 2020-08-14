@@ -20,7 +20,8 @@ Properties:
 """
 
 import socket
-from server.config import PORT, MAX_DATA_LEN
+import threading
+from config import PORT, MAX_DATA_LEN
 
 class Server(object):
 
@@ -58,7 +59,7 @@ class Slave(threading.Thread):
         self.socket.shutdown(socket.SHUT_RDWR)
 
     def run(self):
-      while not self.stop:
+      while True:
         data = self.socket.recv(MAX_DATA_LEN)
         if data:
           print(data)
