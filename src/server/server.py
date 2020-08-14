@@ -20,6 +20,7 @@ Properties:
 """
 
 import socket
+import select
 import threading
 from config import PORT, MAX_DATA_LEN
 
@@ -60,6 +61,21 @@ class Slave(threading.Thread):
 
     def run(self):
       while True:
+        try:
+          ready_to_read, ready_to_write, in_error = select.select([conn,], [conn,], [], 5)
+          except select.error:
+              conn.shutdown(2)    # 0 = done receiving, 1 = done sending, 2 = both
+              conn.close()
+              # connection error event here, maybe reconnect
+              print 'connection error'
+              break
+          if len(ready_to_read) > 0:
+              recv = conn.recv(2048)
+              # do stuff with received data
+              print 'received:', recv
+          if len(ready_to_write) > 0:
+              # connection established, send some stuff
+              conn.send('some stuff')
         data = self.socket.recv(MAX_DATA_LEN)
         if data:
           print(data)
