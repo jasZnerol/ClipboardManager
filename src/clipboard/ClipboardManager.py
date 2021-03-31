@@ -103,7 +103,7 @@ def set_files_to_clipboard(file_list):
   stg.set(pythoncom.TYMED_HGLOBAL, buf)
   try:
     win32clipboard.SetClipboardData(win32clipboard.CF_HDROP, stg.data)
-  except:
+  except Exception:
     pass
 
 # Returnes the data stored in the clipboard
@@ -124,7 +124,7 @@ def get_clipboard_data():
     # Get the current data for this format_id from the clipboard
     try:
       data.add((format_id, win32clipboard.GetClipboardData(format_id)))
-    except:
+    except Exception:
       print(format_id)
 
   win32clipboard.CloseClipboard()

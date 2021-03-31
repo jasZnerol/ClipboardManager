@@ -1,4 +1,7 @@
 import clipboard.ClipboardManager as CBM
+from network.server import app
 
 if __name__ == "__main__":
-  CBM.start_clipboardManager()
+  import threading
+  threading.Thread(target=CBM.start_clipboardManager).start()
+  app.run(port=5000)

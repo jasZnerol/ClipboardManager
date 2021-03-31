@@ -1,5 +1,13 @@
 from flask import Flask, request, Response
+"""
+
+GET   /api/clipboard/available  - Prüfe ob neue Daten vorhanden sind
+GET   /api/clipboard            - Erhalte neues Clipboard
+POST  /api/clipboard            - Lade neues Clipboard hoch bzw. sende Neuerungen an Server
+
+"""
 app = Flask(__name__)
+
 
 # Default route with nothing to it
 @app.route('/')
@@ -38,8 +46,6 @@ def get_complex_response():
   return res
 
 # Using router from different file
-from router import router
+from network.router import router
 app.register_blueprint(router, url_prefix='/prefix')
 
-if __name__ == '__main__':
-  app.run(debug=True, port=5000)
