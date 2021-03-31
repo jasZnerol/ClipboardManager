@@ -185,7 +185,6 @@ def start_clipboardManager():
     #print("Restoring id {id}".format(id = id))
     pass
 
-
   # Add hotkeys with corresponding function
   hotkey_set = {
     ('ctrl+c',     on_press_copy),
@@ -197,7 +196,7 @@ def start_clipboardManager():
 
   # Create and add selector functions with addressing by number
   for id in range(10):
-    hotkey_set.add(('ctrl+alt+{id}'.format(id = id), partial(on_press_restore_id, id)))
+    hotkey_set.add(('ctrl+alt+{}'.format(id), partial(on_press_restore_id, id)))
   
   # Add hotkey listeners to the keyboard object
   for keys, func in hotkey_set:

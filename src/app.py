@@ -1,4 +1,3 @@
-#!.\env\Scripts\python.exe
 import clipboard.clipboardManager as CBM
 
 if __name__ == "__main__":
