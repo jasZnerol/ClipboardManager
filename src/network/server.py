@@ -1,51 +1,67 @@
-from flask import Flask, request, Response
+"""
+Routes
+
+GET     /clipboard            - Erhalte neues Clipboard
+POST    /clipboard            - Lade neues Clipboard hoch bzw. sende Neuerungen an Server
+DELETE  /clipboard            - Clear the entire clipboard
+
+GET     /clipboard/available  - Prüfe ob neue Daten vorhanden sind
+
+GET     /file?fid=<file_id>   - Lade eine Datei vom Server runter die im ClipboardManager vorgemerkt ist
+
 """
 
-GET   /api/clipboard/available  - Prüfe ob neue Daten vorhanden sind
-GET   /api/clipboard            - Erhalte neues Clipboard
-POST  /api/clipboard            - Lade neues Clipboard hoch bzw. sende Neuerungen an Server
-
-"""
-app = Flask(__name__)
 
 
-# Default route with nothing to it
-@app.route('/')
-def hello_world():
-  return 'Hello world'
+
+# Handle request asynchrounosly
+from gevent import monkey
+monkey.patch_all()
+
+from bottle import Bottle, run, request, response
+import pickle
+
+app = Bottle()
+
+clipboard = []
+updateID = 0
+
+@app.get("/clipboard")
+def get_clipboard():
+  return "asdf"
+  global clipboard, updateID
+  response.headers["updateID"] = updateID
+  response.headers["Content-Type"] = "application/python-pickle"
+  # Serialize clipboard to sent to client
+  return pickle.dumps(clipboard)
+
+@app.post("/clipboard")
+def post_clipboard():
+  global clipboard, updateID
+  update = pickle.loads(request.body.read())
+  clipboard.append(update)
+  updateID += 1
+  response.headers["Content-Type"] = "text/plain"
+  return str(updateID)
 
 
-# Route using query parameters
-@app.route('/params')
-def query_params():
-  # To get a specific parameter: request.args.get('paramName')
-  args = request.args
-  res = 'I got those parameters:'
-  for arg in args:
-    res += '{0} = {1} '.format(arg, args[arg]) 
-  return res
+@app.delete("/clipboard")
+def delete_clipboard():
+  global clipboard, updateID
+  clipboard = []
+  updateID = 0
+  return str(updateID)
 
 
-# Only allows POST request. With no specification only GET is allowed
-@app.route('/post-only', methods=['POST'])
-def only_post():
-  # Getting the body-text of the request as a JSON
-  body = request.get_json() # .get_data() for raw data
-  res = 'This is the body of the request: {0}'.format(body) 
-  return res
+@app.get("/clipboard/available")
+def get_clipboard_available():
+  global updateID
+  response.headers["Content-Type"] = "text/plain"
+  return str(updateID)
 
 
-# Setting the response status code and generally more response-parameters
-@app.route('/complex-response')
-def get_complex_response():
-  # Creating a more complex response object
-  res = Response(response="OK", status=200, mimetype='text/plain')
-  # Setting response headers and cookies
-  res.headers['some_value'] = 'new_header_value'
-  res.set_cookie('some_value', 'new_cookie_value')
-  return res
 
-# Using router from different file
-from network.router import router
-app.register_blueprint(router, url_prefix='/prefix')
 
+
+if __name__ == '__main__':
+  run(app, reloader=True, host='localhost', port=5000, server="gevent")
