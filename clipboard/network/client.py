@@ -1,7 +1,8 @@
 r"""HTTP/1.1 client library
 
-<intro stuff goes here>
-<other stuff, too>
+Created and developed as open source project under https://github.com/python/cpython (2021-04-01)
+Source: https://github.com/python/cpython/blob/3.9/Lib/http/client.py 
+Modified by Jasper Lorenz 2021-04-01
 
 HTTPConnection goes through a number of "states", which define when a client
 may legally make another request or fetch the response for a particular
