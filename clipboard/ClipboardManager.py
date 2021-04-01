@@ -237,7 +237,13 @@ class CBMRequest(object):
     
   def get_clipboard(self):
     res = self.client.request("GET", "/clipboard")
-    return (pickle.loads(res["body"]), res["headers"]["Clipboard-Index"])
+    
+    index = 0
+    for key, val in res["headers"]:
+      if key == "Clipboard-Index":
+        index = int(val)
+
+    return (pickle.loads(res["body"]), index)
     
     
   def update_clipboard(self, data, index):
@@ -252,8 +258,6 @@ class CBMRequest(object):
   def benchmark(self):
     times = []
     requests = 1000
-    prct = 0
-    import time
     for i in range(requests):
       start = time.time()
       data = {(13, 'f"{base_url}/clipbasdasdoard"'), (1, b'f"{base_url}/casdasdlipboard"'), (7, b'f"{base_url}/cliasdasdpboard"')}

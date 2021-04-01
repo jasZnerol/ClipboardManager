@@ -11,7 +11,7 @@ class Request(object):
     }
     self.headers = self.default_headers
 
-  def set_header(key : str, value : str):
+  def set_header(self, key : str, value : str):
     self.headers[key] = value
 
 
