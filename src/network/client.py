@@ -4,7 +4,9 @@ import pickle
 
 http = urllib3.PoolManager()
 
-base_url = "http://localhost:5000"
+# Use numeric address as the underlying http-client for both "requests" and "urllib3" has very fucking slow dns-lookup ... even for localhost
+base_url = "http://127.0.0.1:5000" 
+
 updateID = 0
 
 
@@ -17,15 +19,17 @@ def get_clipboard():
   
   
 def update_clipboard(data):
+  global updateID
   requests.post(f"{base_url}/clipboard", data=pickle.dumps(data))
-  updateID += 1
+  updateID =+  1
 
 def clear_clipboard():
   requests.delete("f{base_url}/clipboard")
   updateID = 0
 
-
+import time
+start = time.time()
 data = {(13, 'f"{base_url}/clipboard"'), (1, b'f"{base_url}/clipboard"'), (7, b'f"{base_url}/clipboard"')}
-# update_clipboard(data)
+update_clipboard(data)
 get_clipboard()
-print("reahced")
+print(time.time() - start, "seconds")
