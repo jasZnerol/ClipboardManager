@@ -919,6 +919,7 @@ class HTTPConnection:
         """Connect to the host and port specified in __init__."""
         import time
         start = time.time()
+        # >>> Modifications
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         # If DNS-lookup fails use localhost and given port instead
@@ -933,6 +934,7 @@ class HTTPConnection:
         self.sock = s
         # self.sock = self._create_connection((self.host,self.port), self.timeout, self.source_address)
         # print(time.time() - start, "seconds")
+        # >>> End of Modifications
         self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
         if self._tunnel_host:
