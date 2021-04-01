@@ -11,9 +11,6 @@ GET     /file?fid=<file_id>   - Lade eine Datei vom Server runter die im Clipboa
 
 """
 
-
-
-
 # Handle request asynchrounosly
 from gevent import monkey
 monkey.patch_all()
@@ -28,7 +25,6 @@ updateID = 0
 
 @app.get("/clipboard")
 def get_clipboard():
-  return "asdf"
   global clipboard, updateID
   response.headers["updateID"] = updateID
   response.headers["Content-Type"] = "application/python-pickle"
@@ -40,7 +36,8 @@ def post_clipboard():
   global clipboard, updateID
   update = pickle.loads(request.body.read())
   clipboard.append(update)
-  updateID += 1
+  print(clipboard)
+  updateID += 1 
   response.headers["Content-Type"] = "text/plain"
   return str(updateID)
 
