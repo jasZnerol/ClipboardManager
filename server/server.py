@@ -36,7 +36,6 @@ def post_clipboard():
   global clipboard, updateID
   update = pickle.loads(request.body.read())
   clipboard.append(update)
-  print(clipboard)
   updateID += 1 
   response.headers["Content-Type"] = "text/plain"
   return str(updateID)
