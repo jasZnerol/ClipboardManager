@@ -12,7 +12,7 @@ def update_exists():
   
 def get_clipboard():
   res = client.request("GET", "/clipboard")
-  return res["body"]
+  return pickle.loads(res["body"])
   
   
 def update_clipboard(data):

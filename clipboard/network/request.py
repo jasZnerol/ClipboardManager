@@ -1,5 +1,5 @@
-import client
-import pickle
+import network.client as client
+
 
 class Request(object):
 
@@ -47,9 +47,10 @@ class Request(object):
 # print(r.default_headers)
 # print(r.request("GET", "/clipboard").read())
 
-conn = client.HTTPConnection("localhost", 5000)
-conn.request("GET", "/clipboard", body=None, headers={})  
-res = conn.getresponse()
-print(pickle.loads(res.read()))
-conn.close()
+# import pickle
+# conn = client.HTTPConnection("localhost", 5000)
+# conn.request("GET", "/clipboard", body=None, headers={})  
+# res = conn.getresponse()
+# print(pickle.loads(res.read()))
+# conn.close()
 
