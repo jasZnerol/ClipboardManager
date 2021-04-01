@@ -21,20 +21,23 @@ import pickle
 app = Bottle()
 
 clipboard = []
+index = 0
 updateID = 0
 
 @app.get("/clipboard")
 def get_clipboard():
-  global clipboard, updateID
+  global clipboard, updateID, index
   response.headers["updateID"] = updateID
   response.headers["Content-Type"] = "application/python-pickle"
+  response.headers["Clipboard-Index"] = index
   # Serialize clipboard to sent to client
   return pickle.dumps(clipboard)
 
 @app.post("/clipboard")
 def post_clipboard():
-  global clipboard, updateID
+  global clipboard, updateID, index
   update = pickle.loads(request.body.read())
+  index = int(request.headers["Client-Index"])
   clipboard.append(update)
   updateID += 1 
   response.headers["Content-Type"] = "text/plain"
@@ -43,9 +46,9 @@ def post_clipboard():
 
 @app.delete("/clipboard")
 def delete_clipboard():
-  global clipboard, updateID
+  global clipboard, updateID, index
   clipboard = []
-  updateID = 0
+  updateID, index = 0
   return str(updateID)
 
 
@@ -54,8 +57,6 @@ def get_clipboard_available():
   global updateID
   response.headers["Content-Type"] = "text/plain"
   return str(updateID)
-
-
 
 
 

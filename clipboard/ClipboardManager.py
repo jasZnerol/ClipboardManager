@@ -10,7 +10,7 @@ import time
 import pythoncom
 
 ## Local dependencies
-import clipboard.config as config
+import config 
 
 """
 #############################
@@ -22,7 +22,7 @@ class ClipboardMemory(object):
     self._memory = []   # History of the clipboard
     self._idx    = -1   # Points towards the object that currently is in the clipboard
   
-  def __contains__(self, item):
+  def __contains__(self, item : any):
     return item in self._memory
 
   # Traverses backwards in the memory list
@@ -44,7 +44,7 @@ class ClipboardMemory(object):
     return self._memory[restore_idx]
 
   # Appends an element after the current element in the clipboard. All other element after that one get deleted.
-  def add(self, data):
+  def add(self, data : any):
     if len(self._memory) < 2:
       self._memory.append(data)
       self._idx += 1
@@ -60,6 +60,13 @@ class ClipboardMemory(object):
     self._memory = []
     self._idx    = -1 
 
+  # Lists should be equal for every element but the newest one. Changes every element that differs to the new one
+  def overwrite(self, memory : list, idx : int):
+    self._memory = memory
+    self._idx = idx
+
+
+  
 
 """
 #############################
@@ -205,3 +212,70 @@ def start_clipboardManager():
 
   # Wait until escape was pressed and end the programm
   keyboard.wait('esc')
+
+
+
+"""
+#############################
+######### Network ###########
+#############################
+"""
+
+from network.request import Request
+import pickle
+
+class CBMRequest(object):
+
+  def __init__(self):
+    self.updateID = 0
+    self.client = Request("localhost", 5000)
+
+  def update_exists(self):
+    res = self.client.request("GET", "/clipboard/available")
+    return str(self.updateID) != res["body"].decode()
+
+    
+  def get_clipboard(self):
+    res = self.client.request("GET", "/clipboard")
+    return (pickle.loads(res["body"]), res["headers"]["Clipboard-Index"])
+    
+    
+  def update_clipboard(self, data, index):
+    self.client.set_header("Client-Index", index)
+    self.client.request("POST", "/clipboard", data=pickle.dumps(data))
+    self.updateID =+  1
+
+  def clear_clipboard(self):
+    client.request("DELETE", "clipboard")
+    self.updateID = 0
+
+  def benchmark(self):
+    times = []
+    requests = 1000
+    prct = 0
+    import time
+    for i in range(requests):
+      start = time.time()
+      data = {(13, 'f"{base_url}/clipbasdasdoard"'), (1, b'f"{base_url}/casdasdlipboard"'), (7, b'f"{base_url}/cliasdasdpboard"')}
+      update_clipboard(data)
+      get_clipboard()
+      times.append(time.time() - start)
+      if (i % 100 == 0):
+        clear_clipboard()
+        print("{0} of requests finished".format(i))
+
+    print("The average request took {0} seconds".format(sum(times) / len(times)))
+    print("Longest request was the {0}-th request with {1} seconds.".format(times.index(max(times)), max(times)))
+    print("Shortes request was the {0}-th request with {1} seconds.".format(times.index(min(times)), min(times)))
+    print("Total duration for all {0} requests was {1} seconds".format(requests, sum(times)))
+
+
+def start_polling(clipboard : ClipboardMemory):
+  import threading
+  stop_polling = False
+  req = CBMRequest()
+  def start_thread():
+    while not stop_polling:
+      if req.update_exists():
+        clipboard
+
