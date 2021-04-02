@@ -25,37 +25,43 @@ class ClipboardMemory(object):
   def __contains__(self, item : any):
     return item in self._memory
 
-  # Traverses backwards in the memory list
+  # Traverses backwards in the memory list. The index wraps around when surpassing the list on either side
   def backward(self): 
     restore_idx = self._idx - 1
     if restore_idx < 0 or restore_idx >= len(self._memory):
       return set()
     
-    self._idx -= 1
+    self._idx = (self._idx - 1) % len(self._memory)
     return self._memory[restore_idx]
 
-  # Traverses forwards in the memory list
+  # Traverses forwards in the memory list. The index wraps around when surpassing the list on either side
   def forward(self):
     restore_idx = self._idx + 1
     if restore_idx < 0 or restore_idx >= len(self._memory):
       return set()
-    self._idx += 1
+    self._idx = (self._idx + 1) % len(self._memory)
     print(self._memory[restore_idx])
     return self._memory[restore_idx]
 
-  # Appends an element after the current element in the clipboard. All other element after that one get deleted.
-  def add(self, data : any):
-    if len(self._memory) < 2:
-      self._memory.append(data)
-      self._idx += 1
-      return
-
-    while self._memory and self._idx < len(self._memory) - 1:
-      self._memory.pop()
-    self._idx = len(self._memory)
+  # Appends an element to the list and set the index towards the new element
+  def add(self, data : set):
     self._memory.append(data)
-    
-  # Reset the memory and index to initialization state
+    self._idx = len(self._memory) - 1
+
+  # Delete the element at the index position
+  def remove(self):
+    if self._idx < 0 or not self._memory:
+      return set()
+
+    self._memory.pop(self._idx)
+    if self._idx >= len(self._memory):
+      self._idx -= 1
+
+    if self._idx < 0 or not self._memory:
+      return set()
+
+    return self._memory[self._idx]
+
   def clear(self):
     self._memory = []
     self._idx    = -1 
@@ -155,19 +161,17 @@ def update_clipboard_data(data):
 
   win32clipboard.CloseClipboard()
 
-
-
 """
 #############################
 ######### Keyboard ##########
 #############################
 """
-# Start function for this module
+# Start function module this module
 def start_clipboardManager():
   memory = ClipboardMemory()   
-  
+
   def on_press_copy():
-    time.sleep(0.5)
+    time.sleep(0.3)
     data = get_clipboard_data()
     if data not in memory:
       memory.add(data)
@@ -181,6 +185,10 @@ def start_clipboardManager():
     update_clipboard_data(memory.forward())
     print("forward")
 
+  def on_press_remove():
+    update_clipboard_data(memory.remove())
+    print("removed")
+
   def on_press_clear():
     memory.clear()
     print("memory cleared")
@@ -192,19 +200,19 @@ def start_clipboardManager():
     #print("Restoring id {id}".format(id = id))
     pass
 
-
   # Add hotkeys with corresponding function
   hotkey_set = {
-    ('ctrl+c',     on_press_copy),
-    ('ctrl+alt+r', on_press_backward),
-    ('ctrl+alt+f', on_press_forward),
-    ('ctrl+alt+c', on_press_clear),
-    ('ctrl+alt+p', on_press_print)
+    ("ctrl+c",     on_press_copy),
+    ("ctrl+alt+r", on_press_backward),
+    ("ctrl+alt+f", on_press_forward),
+    ("ctrl+alt+d", on_press_remove),
+    ("ctrl+alt+c", on_press_clear),
+    ("ctrl+alt+p", on_press_print)
   }
 
   # Create and add selector functions with addressing by number
   for id in range(10):
-    hotkey_set.add(('ctrl+alt+{id}'.format(id = id), partial(on_press_restore_id, id)))
+    hotkey_set.add(("ctrl+alt+{id}".format(id = id), partial(on_press_restore_id, id)))
   
   # Add hotkey listeners to the keyboard object
   for keys, func in hotkey_set:
@@ -221,39 +229,57 @@ def start_clipboardManager():
 #############################
 """
 
-from network.request import Request
+import requests
 import pickle
+import threading
 
-class CBMRequest(object):
+class CBMRequest(threading.Thread):
 
   def __init__(self):
     self.updateID = 0
-    self.client = Request("localhost", 5000)
-
-  def update_exists(self):
-    res = self.client.request("GET", "/clipboard/available")
-    return str(self.updateID) != res["body"].decode()
-
+    self.url = f"http://{config.ip}:{config.port}{{}}" 
     
+  # Return the entire clipboard currently stored in the server
   def get_clipboard(self):
-    res = self.client.request("GET", "/clipboard")
+    res = requests.get(self.url.format("/clipboard"))
+    clipboard = pickle.loads(res.content)
+    res.close()
+    return clipboard
     
-    index = 0
-    for key, val in res["headers"]:
-      if key == "Clipboard-Index":
-        index = int(val)
+  # Send a new value that will be added to the shared clipboard
+  def update_clipboard(self, data : set):
+    res = requests.post(self.url.format("/clipboard"), data=pickle.dumps(data))
+    id = pickle.loads(res.content)
+    self.updateID = id
+    res.close()
 
-    return (pickle.loads(res["body"]), index)
-    
-    
-  def update_clipboard(self, data, index):
-    self.client.set_header("Client-Index", index)
-    self.client.request("POST", "/clipboard", data=pickle.dumps(data))
-    self.updateID =+  1
+  # Will clear either the entire clipboard if no index is specified or just remove a single element at a given index
+  # If the index was invalid nothing will be removed and the updateID wont change.
+  # If the index was valid the updateID is updated to the value returned from the server.
+  def delete_clipboard(self, index=-1):
+    query = ""
+    if index >= 0:
+      query = "?index={}".format(index)
+    res = requests.delete(self.url.format("/clipboard") + query)
+    id = pickle.loads(res.content)
+    res.close()
+    if (id >= 0):
+      self.updateID = id
 
-  def clear_clipboard(self):
-    client.request("DELETE", "clipboard")
-    self.updateID = 0
+      
+  # Update the current idnex of the shared clipboard. If the index was updated succesfully it is being returned. Else -1 is returned.
+  def update_index(self, index : int):
+    res = requests.post(self.url.format("/index"), data=pickle.dumps(index))
+    index = pickle.loads(res.content)
+    res.close()
+    return index
+
+  # Check if an update is available from the server. Return a tuple with the a bool and current index which can always change 
+  def update_available(self):
+    res = requests.get(self.url.format("/clipboard/available"))
+    id, index = pickle.loads(res.content)
+    res.close()
+    return (self.updateID != id, index)
 
   def benchmark(self):
     times = []
@@ -261,11 +287,11 @@ class CBMRequest(object):
     for i in range(requests):
       start = time.time()
       data = {(13, 'f"{base_url}/clipbasdasdoard"'), (1, b'f"{base_url}/casdasdlipboard"'), (7, b'f"{base_url}/cliasdasdpboard"')}
-      update_clipboard(data)
-      get_clipboard()
+      self.update_clipboard(data)
+      self.get_clipboard()
       times.append(time.time() - start)
       if (i % 100 == 0):
-        clear_clipboard()
+        self.delete_clipboard()
         print("{0} of requests finished".format(i))
 
     print("The average request took {0} seconds".format(sum(times) / len(times)))
@@ -273,13 +299,4 @@ class CBMRequest(object):
     print("Shortes request was the {0}-th request with {1} seconds.".format(times.index(min(times)), min(times)))
     print("Total duration for all {0} requests was {1} seconds".format(requests, sum(times)))
 
-
-def start_polling(clipboard : ClipboardMemory):
-  import threading
-  stop_polling = False
-  req = CBMRequest()
-  def start_thread():
-    while not stop_polling:
-      if req.update_exists():
-        clipboard
 
