@@ -7,6 +7,8 @@ DELETE  /clipboard            - Clear the entire clipboard
 
 GET     /clipboard/available  - Prüfe ob neue Daten vorhanden sind
 
+POST    /index
+
 GET     /file?fid=<file_id>   - Lade eine Datei vom Server runter die im ClipboardManager vorgemerkt ist
 
 """
@@ -15,7 +17,7 @@ GET     /file?fid=<file_id>   - Lade eine Datei vom Server runter die im Clipboa
 from gevent import monkey
 monkey.patch_all()
 
-from bottle import Bottle, run, request, response
+from bottle import Bottle, run, request, response, hook
 import pickle
 
 app = Bottle()
@@ -58,7 +60,7 @@ def post_clipboard():
 # If the index is invalid return 400 bad request and a serialized -1 for the updateID
 @app.delete("/clipboard")
 def delete_clipboard():
-  global clipboard, updateID, index
+  global clipboard, updateID
   response.headers["Content-Type"] = "application/python-pickle"
   # Found an index therefore only delete one
   if "index" in request.query:
@@ -72,14 +74,13 @@ def delete_clipboard():
       return pickle.dumps(-1)
     # Valid index
     else:
-      index = i
       clipboard.pop(i)
       updateID += 1
       return pickle.dumps(updateID)
   # No index found clear the entire clipboard
   else:
     clipboard = []
-    updateID, index = 0, 0
+    updateID = 0
     return pickle.dumps(updateID)
 
 
@@ -116,7 +117,10 @@ def get_clipboard_available():
   response.headers["Content-Type"] = "application/python-pickle"
   return pickle.dumps((updateID, index))
 
-
+@app.hook("after_request")
+def middle_ware():
+  global updateID, index, clipboard
+  print(updateID, index, clipboard)
 
 if __name__ == '__main__':
   run(app, reloader=True, host='localhost', port=5000, server="gevent")
