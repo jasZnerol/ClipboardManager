@@ -15,4 +15,4 @@ format_id_allow_set = {1, 7, 13, 15}    # Allowed format_ids for the clipboard t
 # Server
 ip = "127.0.0.1"
 port = 5000
-webpage = "http://google.de/"
+webpage = f"http:{ip}:{port}/clipboard/webpage"

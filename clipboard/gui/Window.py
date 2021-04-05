@@ -4,6 +4,7 @@ from functools import partial
 
 from clipboard.gui.config import *
 from clipboard.ClipboardManager import update_clipboard_data
+from PIL import ImageTk, Image
 
 class Window(object):
   def __init__(self, opts : dict = dict()):
@@ -33,6 +34,8 @@ class CBMWindow(object):
   def __init__(self, clipboard):
     self.clipboard = clipboard
     self.window = Window()
+
+    self.images = dict()
 
     # Generate on click functions for each possible clibboard element displayed in the gui 
     def func(idx, event):
@@ -99,6 +102,7 @@ class CBMWindow(object):
 
   # Interface functions for keyboard controll
   def toggle_visibility(self):
+    self.window.visible = "normal" == self.root.state()
     if self.window.visible:
       self.window.visible = False
       self.root.withdraw()
@@ -120,18 +124,31 @@ class CBMWindow(object):
     for idx, elements  in enumerate(self.clipboard._memory):
       # Extract text
       lable_text = ""
+      is_image = False
       for typ, text in elements:
         if typ == 13: # plain text
           lable_text = text
+          break
+        # TODO: Optimize this: This now loads the image and resizes it every time
+        #       Also this only works for a local machine. We will need to check if the image
+        #       Can be found on this machine and if not REQUEST it from the server
+        if typ == 15: #image
+          # Get image and store variable as to not lose it
+          lable_text = text[0]
+          image = ImageTk.PhotoImage(Image.open(lable_text).resize((128, 128), Image.ANTIALIAS))
+          self.images[lable_text] = image
+          is_image = True
+          break
+
+      # Set bg color depending on if element is selected or not
+      bg_color = "grey" if idx != self.clipboard._idx else "red"
+      # Select an image if the current element is an image
+      image = self.images[lable_text] if is_image else None
 
       # Create lable for current element
-      lable_text = lable_text if lable_text != "" else "No Plain Text"
-      bg_color = "grey" if idx != self.clipboard._idx else "red"
-
-      l = Label(self.frame, text=lable_text,  bg=bg_color)
+      l = Label(self.frame, text=lable_text, image=image, bg=bg_color)
       l.config(font=self.window.font)
       l.grid(row=row, column=column, sticky=W, padx=10)
-     
       l.bind("<Button-1>", self.lable_on_click_functions[idx])
 
       # Index stuff
@@ -141,8 +158,7 @@ class CBMWindow(object):
         column = 0
       if (row > self.window.element_per_rows):
         break
-
-    self.frame.pack()
+      self.frame.pack()
       
   def open_settings(self):
     self.settings = Toplevel(self.root)

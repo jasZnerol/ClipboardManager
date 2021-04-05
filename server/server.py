@@ -122,5 +122,37 @@ def middle_ware():
   global updateID, index, clipboard
   print(updateID, index, clipboard)
 
+
+"""
+#############################
+######## Webpage  ###########
+#############################
+"""
+
+@app.get("/clipboard/webpage")
+def get_web_page():
+  global updateID, index, clipboard
+  response.headers["Content-Type"] = "text/html; charset=UTF-8"
+  page = []
+  with open("index.html", "r") as file:
+    page = file.read()
+  page = page.format(updateID=updateID, index=index, list="{list}")
+  print(clipboard)
+  if clipboard == []:
+    return page.format(list="Empty Clipboard")
+  for ele in clipboard:
+    # Extract text
+    lable = ""
+    for typ, text in ele:
+      if typ == 13: # plain text
+        lable = text
+    if lable == "":
+      continue
+    page = page.format(list="<li>{}".format(lable) + "\n{list}")
+  return page.format(list="")
+
+  
+
+
 if __name__ == '__main__':
   run(app, reloader=True, host='localhost', port=5000, server="gevent")
