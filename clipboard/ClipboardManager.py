@@ -42,6 +42,14 @@ class ClipboardMemory(object):
     self._req.update_index(self._idx)
     return self._memory[self._idx]
 
+  # Will jump toward a given index and return the element at that position
+  def goto(self, idx : int):
+    if self._memory == [] or idx < 0 or idx >= len(self._memory):
+      return set()
+    self._idx = idx
+    self._req.update_index(self._idx)
+    return self._memory[self._idx]
+
   # Appends an element to the list and set the index towards the new element
   # This will also send a request to update the shared clipboard
   def add(self, data : set):
