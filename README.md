@@ -4,6 +4,7 @@ Currently this program is only available for windows.
 
 # Requirements
 For the ClipboardManager (CBM) to work **python3.\*** is required.
+<<<<<<< HEAD
 
 
 # Running the program
@@ -12,3 +13,5 @@ executable that will run in your background allowing a much easier usage.
 ```sh
 python src/app.py
 ```
+=======
+>>>>>>> dev
