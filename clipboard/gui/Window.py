@@ -13,8 +13,10 @@ class Window(object):
     self.hide_border = opts.get("hide_border", default_values["hide_border"])
     self.visible = False
 
-    self.element_rows = self.height / 20
-    self.element_columns =  self.width / 100
+
+    self.clipboard_font = ("Courier", 44)
+    self.element_per_rows = self.height / 20
+    self.element_per_columns =  self.width / 100
 
   
   # Update with a given opts-dictionary. If a key is not found don't change the window configuration in that aspect
@@ -34,8 +36,9 @@ class CBMWindow(object):
   def run(self):
     self.root = Tk()
     self.root.withdraw()
-    self.update_window_properties()
     self.frame = Frame(self.root)
+    self.update_window_properties()
+    self.update_clipboard()
     self.root.mainloop()
   
   # Applys all properties set in self.window to the tkinter window
@@ -62,7 +65,12 @@ class CBMWindow(object):
 
   def update_clipboard(self):
     row, column = 0, 0
-    
+    # Clear the frame by destroying it and its children and create a new one
+    for child in self.frame.winfo_children():
+      child.pack_forget()
+    self.frame.destroy()
+
+    self.frame = Frame(self.root)
     for idx, elements  in enumerate(self.clipboard._memory):
       # Extract text
       lable_text = ""
@@ -71,16 +79,20 @@ class CBMWindow(object):
           lable_text = text
 
       # Gui stuff
-      l = Label(self.frame, text=lable_text if lable_text != "" else "No Plain Text",  bg="grey" if idx != self.clipboard._idx else "red")
-      l.grid(row=row, column=column, sticky=W)
+      lable_text = lable_text if lable_text != "" else "No Plain Text"
+      bg_color = "grey" if idx != self.clipboard._idx else "red"
+      l = Label(self.frame, text=lable_text,  bg=bg_color)
+      l.config(font=self.window.clipboard_font)
+      l.grid(row=row, column=column, sticky=W, padx=10)
 
       # Index stuff
       column += 1
-      if (column == self.window.element_columns):
+      if (column == self.window.element_per_columns):
         row += 1
         column = 0
-      if (row > self.window.element_rows):
+      if (row > self.window.element_per_rows):
         break
+
     self.frame.pack(padx=5, pady=10)
       
 
