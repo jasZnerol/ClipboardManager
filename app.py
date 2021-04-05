@@ -1,10 +1,10 @@
-# Global dependencies
+## Global dependencies
 import threading
 import time
 from functools import partial
 import keyboard
 
-# Local dependencies
+## Local dependencies
 from clipboard.ClipboardManager import ClipboardMemory, CBMRequest # Classes
 from clipboard.ClipboardManager import get_clipboard_data, update_clipboard_data # Functions
 from clipboard.gui.Window import CBMWindow
@@ -32,16 +32,7 @@ def start():
   request_thread = threading.Thread(target=start_update_checking)
   request_thread.start()
 
-  gui_thread = threading.Thread(target=gui.run)
-  gui_thread.start()
-
   # Create keybinds
-
-  def on_press_toggle_gui():
-    print(gui.clipboard._memory)
-    gui.change_visibility()
-
-
   def on_press_copy():
     time.sleep(0.3)
     data = get_clipboard_data()
@@ -68,6 +59,14 @@ def start():
   def on_press_print():
     print(memory._memory)
 
+  def on_press_toggle_gui():
+    print("toggle gui")
+    gui.toggle_visibility()
+
+  def on_press_terminate():
+    print("shutting down...")
+    gui.shutdown()
+
   def on_press_restore_id(id):
     #print("Restoring id {id}".format(id = id))
     pass
@@ -80,26 +79,22 @@ def start():
     ("ctrl+alt+d", on_press_remove),
     ("ctrl+alt+c", on_press_clear),
     ("ctrl+alt+p", on_press_print),
-    ("alt+^", on_press_toggle_gui)
+    ("alt+^", on_press_toggle_gui),
+    ("esc", on_press_terminate)
   }
 
   # Create and add selector functions with addressing by number
   for id in range(10):
     hotkey_set.add(("ctrl+alt+{id}".format(id = id), partial(on_press_restore_id, id)))
-  
-
 
   # Add hotkey listeners to the keyboard object
   for keys, func in hotkey_set:
     keyboard.add_hotkey(keys, func)
 
-  # Wait until escape was pressed and end the programm
-  print("reached")
-  keyboard.wait('esc')
+  # Wait until escape was pressed and end the programm. Escape will destroy the gui first.
+  # then all threads are closed
+  gui.run()
   check_for_updates = False
-  print("closing gui")
-  gui.shutdown()
-  gui_thread.join()
   request_thread.join()
 
 

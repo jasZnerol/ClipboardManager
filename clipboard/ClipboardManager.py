@@ -8,10 +8,7 @@ import time
 import pythoncom
 
 ## Local dependencies
-try:
-  import config as config
-except:
-  import clipboard.config as config
+import clipboard.config as config
 
 """
 #############################

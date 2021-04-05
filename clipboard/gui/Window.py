@@ -1,9 +1,7 @@
 from tkinter import *
 
-try:
-  from clipboard.gui.config import *
-except:
-  from config import *
+from clipboard.gui.config import *
+
 
 
 
@@ -46,7 +44,7 @@ class CBMWindow(object):
 
 
   # Interface functions for keyboard controll
-  def change_visibility(self):
+  def toggle_visibility(self):
     if self.window.visible:
       self.window.visible = False
       self.root.withdraw()
