@@ -12,6 +12,10 @@ class Window(object):
     self.transparency = opts.get("transparency", default_values["transparency"]) # value between 0 and 1
     self.hide_border = opts.get("hide_border", default_values["hide_border"])
     self.visible = False
+
+    self.element_rows = self.height / 20
+    self.element_columns =  self.width / 100
+
   
   # Update with a given opts-dictionary. If a key is not found don't change the window configuration in that aspect
   def update(self, opts):
@@ -31,6 +35,7 @@ class CBMWindow(object):
     self.root = Tk()
     self.root.withdraw()
     self.update_window_properties()
+    self.frame = Frame(self.root)
     self.root.mainloop()
   
   # Applys all properties set in self.window to the tkinter window
@@ -56,4 +61,27 @@ class CBMWindow(object):
     self.root.destroy()
 
   def update_clipboard(self):
-    pass
+    row, column = 0, 0
+    
+    for idx, elements  in enumerate(self.clipboard._memory):
+      # Extract text
+      lable_text = ""
+      for typ, text in elements:
+        if typ == 13: # plain text
+          lable_text = text
+
+      # Gui stuff
+      l = Label(self.frame, text=lable_text if lable_text != "" else "No Plain Text",  bg="grey" if idx != self.clipboard._idx else "red")
+      l.grid(row=row, column=column, sticky=W)
+
+      # Index stuff
+      column += 1
+      if (column == self.window.element_columns):
+        row += 1
+        column = 0
+      if (row > self.window.element_rows):
+        break
+    self.frame.pack(padx=5, pady=10)
+      
+
+    

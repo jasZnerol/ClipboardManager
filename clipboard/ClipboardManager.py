@@ -27,16 +27,20 @@ class ClipboardMemory(object):
   # Traverses backwards in the memory list. The index wraps around when surpassing the list on either side
   # This will also send a request to update the shared clipboard's index
   def backward(self): 
+    if self._memory == []:
+      return set()
     self._idx = (self._idx - 1) % len(self._memory)
     self._req.update_index(self._idx)
-    return self._memory[restore_idx]
+    return self._memory[self._idx]
 
   # Traverses forwards in the memory list. The index wraps around when surpassing the list on either side
   # This will also send a request to update the shared clipboard's index
   def forward(self):
+    if self._memory == []:
+      return set()
     self._idx = (self._idx + 1) % len(self._memory)
-    self.eq.update_index(self._idx)
-    return self._memory[restore_idx]
+    self._req.update_index(self._idx)
+    return self._memory[self._idx]
 
   # Appends an element to the list and set the index towards the new element
   # This will also send a request to update the shared clipboard
@@ -49,7 +53,7 @@ class ClipboardMemory(object):
   # Delete the element at the index position
   # This will also send a request to update the shared clipboard
   def remove(self):
-    if self._idx < 0 or not self._memory:
+    if self._idx < 0 or self._memory == []:
       return set()
 
     self._memory.pop(self._idx)
@@ -59,7 +63,7 @@ class ClipboardMemory(object):
       self._idx -= 1
       self._req.update_index(self._idx)
 
-    if self._idx < 0 or not self._memory:
+    if self._idx < 0 or self._memory == []:
       return set()
 
     return self._memory[self._idx]

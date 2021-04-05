@@ -38,30 +38,35 @@ def start():
     data = get_clipboard_data()
     if data not in memory:
       memory.add(data)
+      gui.update_clipboard()
       print("copied")
     
   def on_press_backward():
     update_clipboard_data(memory.backward())
+    gui.update_clipboard()
     print("backwards")
 
   def on_press_forward():
     update_clipboard_data(memory.forward())
+    gui.update_clipboard()
     print("forward")
 
   def on_press_remove():
     update_clipboard_data(memory.remove())
+    gui.update_clipboard()
     print("removed")
 
   def on_press_clear():
     memory.clear()
+    gui.update_clipboard()
     print("memory cleared")
 
   def on_press_print():
     print(memory._memory)
 
   def on_press_toggle_gui():
-    print("toggle gui")
     gui.toggle_visibility()
+    print("toggle gui")
 
   def on_press_terminate():
     print("shutting down...")
