@@ -4,17 +4,15 @@ import ctypes
 from ctypes import wintypes
 
 ## Utils
-from functools import partial
-import keyboard
 import time
 import pythoncom
-import threading
 
 ## Local dependencies
 try:
   import config as config
 except:
   import clipboard.config as config
+
 """
 #############################
 ######### History ###########
@@ -75,7 +73,7 @@ class ClipboardMemory(object):
     self._memory = []
     self._req.delete_clipboard()
     self._idx    = -1 
-    self._req.update.index(self._idx)
+    self._req.update_index(self._idx)
 
   # Lists should be equal for every element but the newest one. Changes every element that differs to the new one
   # Does NOT send the updated clipboard version. This function exists to write an update from the server not to!
@@ -172,82 +170,6 @@ def update_clipboard_data(data):
       print(format_id)
 
   win32clipboard.CloseClipboard()
-
-"""
-#############################
-######### Keyboard ##########
-#############################
-"""
-# Start function module this module
-def start_clipboardManager():
-  memory = ClipboardMemory()   
-  
-  check_for_updates = True
-  def start_CBMRequest():
-    req = CBMRequest()
-    while check_for_updates:
-      do_update, index = req.update_available()
-      memory._idx = index
-      if (do_update):
-        memory.overwrite(req.get_clipboard(), index)
-      time.sleep(1)
-  request_thread = threading.Thread(target=start_CBMRequest)
-  request_thread.start()
-
-  def on_press_copy():
-    time.sleep(0.3)
-    data = get_clipboard_data()
-    if data not in memory:
-      memory.add(data)
-      print("copied")
-    
-  def on_press_backward():
-    update_clipboard_data(memory.backward())
-    print("backwards")
-
-  def on_press_forward():
-    update_clipboard_data(memory.forward())
-    print("forward")
-
-  def on_press_remove():
-    update_clipboard_data(memory.remove())
-    print("removed")
-
-  def on_press_clear():
-    memory.clear()
-    print("memory cleared")
-
-  def on_press_print():
-    print(memory._memory)
-
-  def on_press_restore_id(id):
-    #print("Restoring id {id}".format(id = id))
-    pass
-
-  # Add hotkeys with corresponding function
-  hotkey_set = {
-    ("ctrl+c",     on_press_copy),
-    ("ctrl+alt+r", on_press_backward),
-    ("ctrl+alt+f", on_press_forward),
-    ("ctrl+alt+d", on_press_remove),
-    ("ctrl+alt+c", on_press_clear),
-    ("ctrl+alt+p", on_press_print)
-  }
-
-  # Create and add selector functions with addressing by number
-  for id in range(10):
-    hotkey_set.add(("ctrl+alt+{id}".format(id = id), partial(on_press_restore_id, id)))
-  
-  # Add hotkey listeners to the keyboard object
-  for keys, func in hotkey_set:
-    keyboard.add_hotkey(keys, func)
-
-  # Wait until escape was pressed and end the programm
-  keyboard.wait('esc')
-  check_for_updates = False
-  request_thread.join()
-
-
 
 
 """
