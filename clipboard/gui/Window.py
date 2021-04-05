@@ -1,9 +1,9 @@
 from tkinter import *
+from tkinter import ttk
 from functools import partial
 
 from clipboard.gui.config import *
 from clipboard.ClipboardManager import update_clipboard_data
-
 
 class Window(object):
   def __init__(self, opts : dict = dict()):
@@ -14,13 +14,13 @@ class Window(object):
     self.hide_border = opts.get("hide_border", default_values["hide_border"])
     
     # For displaying the clipboard
-    self.clipboard_font = ("Courier", 44)
+    self.font = opts.get("font", default_values["font"])
     self.element_per_rows = self.height / 20
     self.element_per_columns =  self.width / 100
 
     # General gui stuff
     self.visible = False
-    
+
   
   # Update with a given opts-dictionary. If a key is not found don't change the window configuration in that aspect
   def update(self, opts):
@@ -40,13 +40,49 @@ class CBMWindow(object):
       self.update_clipboard()
 
     self.lable_on_click_functions = [partial(func, i) for i in range(100)]
+
   
+  def create_header(self):
+    def clear():
+      self.clipboard.clear()
+      self.update_clipboard()
+    def open_webpage():
+      import webbrowser
+      from clipboard.config import webpage
+      webbrowser.open(webpage)
+
+    # Dictionary for header buttons
+    self.header_buttons = {
+      "Webpage": open_webpage,
+      "Clear":  clear,
+      "Settings": self.open_settings,
+      "Quit":  self.shutdown
+    }
+
+    self.header = Frame(self.root)	
+    # Setup header
+    i = 0
+    for text, func in self.header_buttons.items():
+      b = Button(self.header, text=text, command=func)
+      b.config(font=self.window.font)
+      b.grid(row=0, column=i, sticky=W, padx=10, pady=10)
+      i += 1
+
+    # Create seperator between header and clipboard stuff
+    s = ttk.Separator(self.header, orient='horizontal')
+    s.place(relx=0, rely=0.99, relwidth=1, relheight=1)
+
+    self.header.pack(pady=20)
+
   # Creates the tkinter instance. Can only be done because otherwise tkinter has problmens running in a thread
   # that we can manage ourselfs
   def run(self):
     self.root = Tk()
     self.root.withdraw()
     self.frame = Frame(self.root)
+
+    self.create_header()
+
     self.update_window_properties()
     self.update_clipboard()
     self.root.mainloop()
@@ -93,7 +129,7 @@ class CBMWindow(object):
       bg_color = "grey" if idx != self.clipboard._idx else "red"
 
       l = Label(self.frame, text=lable_text,  bg=bg_color)
-      l.config(font=self.window.clipboard_font)
+      l.config(font=self.window.font)
       l.grid(row=row, column=column, sticky=W, padx=10)
      
       l.bind("<Button-1>", self.lable_on_click_functions[idx])
@@ -106,6 +142,15 @@ class CBMWindow(object):
       if (row > self.window.element_per_rows):
         break
 
-    self.frame.pack(padx=5, pady=10)
+    self.frame.pack()
       
+  def open_settings(self):
+    self.settings = Toplevel(self.root)
+    self.settings.title("Settings")
+    self.settings.geometry("{0}x{1}+{2}+{3}".format(
+      int(self.window.width / 2), 
+      int(self.window.height / 2), 
+      self.window.x_offset * 2, 
+      self.window.y_offset * 3)
+    ) 
 

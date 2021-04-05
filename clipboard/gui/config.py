@@ -8,7 +8,8 @@ default_values = {
   "position": (int(screen_width  / 2 - (2/3 * screen_width)  / 2),  int(screen_height / 2 - (4/5 * screen_height) / 1.75)), # center
   "size": (int(2/3 * screen_width) , int(4/5 * screen_height)), # big
   "transparency": 0.8,
-  "hide_border": True
+  "hide_border": True,
+  "font": ("Courier", 20)
 }
 
 # Return the width, length as a tuple for a given window size
@@ -64,3 +65,8 @@ def window_position(pos : str, window_width : int, window_height : int):
     "bottom_right": (screen_width - window_width, screen_height - window_height)
   }
   return window_positions.get(pos)
+
+
+settings = {
+  "text": ("type", "possible values"),
+}
