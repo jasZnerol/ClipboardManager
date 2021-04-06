@@ -82,6 +82,7 @@ class CBMWindow(object):
   def run(self):
     self.root = Tk()
     self.root.withdraw()
+    self.root.title("CBMWindow")
     self.frame = Frame(self.root)
 
     self.create_header()
@@ -109,12 +110,13 @@ class CBMWindow(object):
 
 
   # Interface functions for keyboard controll
+  # TODO: Stop windows bar notifications
   def toggle_visibility(self):
-    self.window.visible = "normal" == self.root.state()
     if self.window.visible:
       self.window.visible = False
       self.root.withdraw()
     else:
+      self.root.attributes("-topmost", True) # Overlay
       self.window.visible = True
       self.root.deiconify()
 
@@ -228,6 +230,8 @@ class CBMWindow(object):
         # If more images were found merge those into a single image
         image = self.images.get(images[0] if len(images) == 1 else lable_text, self.images["unknown_file_image"])
 
+      # TODO: Fix lable size and text length is use_image is false.
+      #       We want to create a compromise between readability and visually pleasing
 
       # Create lable for current element
       l = Label(self.frame, text=lable_text, image=image, bg=bg_color)
