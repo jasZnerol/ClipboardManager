@@ -141,11 +141,9 @@ class CBMWindow(object):
               total_key += file	
               if file == image:
                 found = True
-                break
               # Check if all file paths as one string are a key vor a list-image
               if total_key == image:
                 found = True
-                break
           if found:
             break
         if found:
@@ -163,7 +161,6 @@ class CBMWindow(object):
           total_key = ""
           image_list = []	
           for file in data:
-            print(file)
             try: 
               total_key += file
               if file not in self.images:

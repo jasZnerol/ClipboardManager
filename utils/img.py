@@ -16,6 +16,9 @@ def merge_images(images : list):
   return new_image
 
 
+def path_to_html_image(image):
+  pass
+
 # images = [Image.open(x).resize((101, 128), Image.ANTIALIAS ) for x in  ["test1.png", "test2.jpg", "test3.jpg"]]
 # img = merge_images(images)
 # img.show()

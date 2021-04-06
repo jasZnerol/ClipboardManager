@@ -128,13 +128,15 @@ def middle_ware():
 ######## Webpage  ###########
 #############################
 """
+import os
+html_file = str(os.path.join(os.path.abspath("."), "resources", "index.html"))
 
 @app.get("/clipboard/webpage")
 def get_web_page():
   global updateID, index, clipboard
   response.headers["Content-Type"] = "text/html; charset=UTF-8"
   page = []
-  with open("index.html", "r") as file:
+  with open(html_file) as file:
     page = file.read()
   page = page.format(updateID=updateID, index=index, list="{list}")
   print(clipboard)
