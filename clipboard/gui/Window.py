@@ -122,6 +122,9 @@ class CBMWindow(object):
     self.root.destroy()
 
 
+
+  # TODO: simplify/minimize this function:
+  #       It should simply update the image cache according to the data stored in the clipboard (single files, string, file-lists etc.)
   def update_images(self):
     # Remove images that have been removed from clipboard in the mean-time
     to_remove = []
@@ -177,7 +180,9 @@ class CBMWindow(object):
 
 
 
-
+  # TODO: simplify/minimize this function:
+  #       It should simply update the visual part of the gui according to the interaction happening with the gui 
+  #       (for instance selecting an element or deleting a selected one) as well as update the clipboard display
   def update_clipboard(self):
     # Start by updating images that are being stored
     self.update_images()
@@ -239,7 +244,8 @@ class CBMWindow(object):
       if (row > self.window.element_per_rows):
         break
       self.frame.pack()
-      
+  
+  # Open a popup window for settings
   def open_settings(self):
     self.settings = Toplevel(self.root)
     self.settings.title("Settings")
