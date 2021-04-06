@@ -13,7 +13,6 @@ def merge_images(images : list):
     cropped_img = img.crop((0, 0, int(width / len(images)), height))
     new_image.paste(img, (x_offset, 0))
     x_offset = x_offset + cropped_img.size[0]
-  new_image.show()
   return new_image
 
 

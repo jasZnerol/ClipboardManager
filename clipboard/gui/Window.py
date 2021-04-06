@@ -138,8 +138,8 @@ class CBMWindow(object):
             total_key = ""
             # Check for single images
             for file in data:
+              total_key += file	
               if file == image:
-                total_key += file
                 found = True
                 break
               # Check if all file paths as one string are a key vor a list-image
