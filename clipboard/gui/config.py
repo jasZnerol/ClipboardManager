@@ -1,5 +1,6 @@
 # Screen dimensions
 from win32api import GetSystemMetrics
+import os
 screen_width = GetSystemMetrics(0)
 screen_height = GetSystemMetrics(1)
 
@@ -8,8 +9,10 @@ default_values = {
   "position": (int(screen_width  / 2 - (2/3 * screen_width)  / 2),  int(screen_height / 2 - (4/5 * screen_height) / 1.75)), # center
   "size": (int(2/3 * screen_width) , int(4/5 * screen_height)), # big
   "transparency": 0.8,
-  "hide_border": True,
-  "font": ("Courier", 20)
+  "hide_border": False,
+  "font": ("Courier", 20),
+  "unknown_file_path": os.path.join(os.path.abspath("."), "resources", "unknown_file.png"),
+  "image_size": (101, 128)
 }
 
 # Return the width, length as a tuple for a given window size

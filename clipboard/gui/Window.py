@@ -1,10 +1,12 @@
 from tkinter import *
 from tkinter import ttk
 from functools import partial
+from PIL import ImageTk, Image
 
 from clipboard.gui.config import *
 from clipboard.ClipboardManager import update_clipboard_data
-from PIL import ImageTk, Image
+from utils.img import merge_images
+
 
 class Window(object):
   def __init__(self, opts : dict = dict()):
@@ -34,8 +36,6 @@ class CBMWindow(object):
   def __init__(self, clipboard):
     self.clipboard = clipboard
     self.window = Window()
-
-    self.images = dict()
 
     # Generate on click functions for each possible clibboard element displayed in the gui 
     def func(idx, event):
@@ -86,6 +86,14 @@ class CBMWindow(object):
 
     self.create_header()
 
+    # Cannot be done in init as root has to exists first
+    self.images = {
+      "unknown_file_image":   ImageTk.PhotoImage(
+            Image.open(default_values["unknown_file_path"]).resize(default_values["image_size"], Image.ANTIALIAS)
+        )
+    }
+
+
     self.update_window_properties()
     self.update_clipboard()
     self.root.mainloop()
@@ -113,40 +121,115 @@ class CBMWindow(object):
   def shutdown(self):
     self.root.destroy()
 
+
+  def update_images(self):
+    # Remove images that have been removed from clipboard in the mean-time
+    to_remove = []
+    for image in self.images:
+      # Skip default image
+      if image == "unknown_file_image":
+        continue
+      found = False
+      # check if any clipboard "element" (which itself can be a list) contains an image we no longer require
+      # if an image from the images stored is not in the clipboard we can remove it from the clipboard list
+      for ele in self.clipboard._memory:
+        for typ, data in ele:
+          if typ == 15:
+            total_key = ""
+            # Check for single images
+            for file in data:
+              if file == image:
+                total_key += file
+                found = True
+                break
+              # Check if all file paths as one string are a key vor a list-image
+              if total_key == image:
+                found = True
+                break
+          if found:
+            break
+        if found:
+          break
+      if not found:
+        to_remove.append(image)
+      found = False
+    for remove in to_remove:
+      del self.images[remove]
+    
+    # Add new images found in the clipboard
+    for ele in self.clipboard._memory:
+      for typ, data in ele:
+        if typ == 15: # file type
+          total_key = ""
+          image_list = []	
+          for file in data:
+            print(file)
+            try: 
+              total_key += file
+              if file not in self.images:
+                image = ImageTk.PhotoImage(Image.open(file).resize(default_values["image_size"], Image.ANTIALIAS))
+                self.images[file] = image
+                image_list.append(file)
+            except Exception:
+              pass
+          # Create an merged image of a file list if a file list exists
+          if total_key not in self.images and len(image_list) > 1:
+            img = merge_images(image_list)
+            image = ImageTk.PhotoImage(img)
+            self.images[total_key] = image
+
+
+
+
   def update_clipboard(self):
+    # Start by updating images that are being stored
+    self.update_images()
     row, column = 0, 0
+
     # Clear the frame by destroying it and its children and create a new one
+    # TODO: Fix index errors when deleting last element - Exception
     for child in self.frame.winfo_children():
       child.pack_forget()
     self.frame.destroy()
-
     self.frame = Frame(self.root)
+
     for idx, elements  in enumerate(self.clipboard._memory):
       # Extract text
       lable_text = ""
-      is_image = False
-      for typ, text in elements:
+      use_image = False
+      image = None
+      images = [] # stores all paths of images that have to be stored
+      for typ, data in elements:
         if typ == 13: # plain text
-          lable_text = text
-          break
-        # TODO: Optimize this: This now loads the image and resizes it every time
-        #       Also this only works for a local machine. We will need to check if the image
-        #       Can be found on this machine and if not REQUEST it from the server
-        if typ == 15: #image
-          # Get image and store variable as to not lose it
-          lable_text = text[0]
-          image = ImageTk.PhotoImage(Image.open(lable_text).resize((128, 128), Image.ANTIALIAS))
-          self.images[lable_text] = image
-          is_image = True
+          lable_text = data
           break
 
+        # TODO: This only works for a local machine. We will need to check if the image
+        #       Can be found on this machine and if not REQUEST it from the server
+        if typ == 15: # files
+          use_image = True
+          for file in data:
+            lable_text += file
+            # Handle multiple files when copying more than one image.
+            # Create a list of all image
+            if file in self.images:
+              images.append(file)
+            else: # If the file copied is not and image use a default placeholder for a file
+              images.append("unknown_file_image")
+   
       # Set bg color depending on if element is selected or not
       bg_color = "grey" if idx != self.clipboard._idx else "red"
+
       # Select an image if the current element is an image
-      image = self.images[lable_text] if is_image else None
+      if use_image:
+        # If only one image was found use that
+        # If more images were found merge those into a single image
+        image = self.images.get(images[0] if len(images) == 1 else lable_text, self.images["unknown_file_image"])
+
 
       # Create lable for current element
       l = Label(self.frame, text=lable_text, image=image, bg=bg_color)
+
       l.config(font=self.window.font)
       l.grid(row=row, column=column, sticky=W, padx=10)
       l.bind("<Button-1>", self.lable_on_click_functions[idx])
