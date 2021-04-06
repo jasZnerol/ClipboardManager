@@ -236,6 +236,8 @@ class CBMWindow(object):
       # Create lable for current element
       l = Label(self.frame, text=lable_text, image=image, bg=bg_color)
 
+      # TODO: Add a text (maybe only on_hover for documents)
+
       l.config(font=self.window.font)
       l.grid(row=row, column=column, sticky=W, padx=10)
       l.bind("<Button-1>", self.lable_on_click_functions[idx])
