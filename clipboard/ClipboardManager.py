@@ -17,6 +17,7 @@ import clipboard.config as config
 """
 class ClipboardMemory(object):
   def __init__(self):
+    # TODO: Add maximum element length/filesize stored in memory!
     self._memory = []   # History of the clipboard
     self._idx    = -1   # Points towards the object that currently is in the clipboard
     self._req    = CBMRequest() # Technically doesn't belong in this class (Maybe change class name(?))

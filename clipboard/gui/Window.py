@@ -237,6 +237,7 @@ class CBMWindow(object):
       l = Label(self.frame, text=lable_text, image=image, bg=bg_color)
 
       # TODO: Add a text (maybe only on_hover for documents)
+      #       Maybe also add colage-image for file-list as "popup" or jsut hover
 
       l.config(font=self.window.font)
       l.grid(row=row, column=column, sticky=W, padx=10)

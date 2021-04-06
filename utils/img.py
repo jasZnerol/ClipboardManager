@@ -2,7 +2,7 @@ from PIL import Image, ImageFilter, ImageEnhance
 from clipboard.gui.config import default_values
 
 def merge_images(images : list):
-  images = [make_shadow(Image.open(x), 5, 10, [5,5]).resize(default_values["image_size"], Image.ANTIALIAS) for x in images][::-1]
+  images = [make_shadow(Image.open(x), 5, 20, [10,10]).resize(default_values["image_size"], Image.ANTIALIAS) for x in images][::-1]
   # All images have the same size
   # If n := len(images) then we take a n-th of each image (cut vertically) and merge those together
   width, height = 101, 128#(default_values["image_size"])
@@ -24,7 +24,7 @@ def make_shadow(image, iterations, border, offset, background_colour=(255,255,25
   # iterations: number of times to apply the blur filter to the shadow
   # border: border to give the image to leave space for the shadow
   # offset: offset of the shadow as [x,y]
-  # background_cOlour: colour of the background
+  # background_colour: colour of the background
   # shadow_colour: colour of the drop shadow
   
   #Calculate the size of the shadow's image
