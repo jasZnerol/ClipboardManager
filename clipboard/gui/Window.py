@@ -36,6 +36,7 @@ class CBMWindow(object):
   def __init__(self, clipboard):
     self.clipboard = clipboard
     self.window = Window()
+    self.settings = None # settings window 
 
     # Generate on click functions for each possible clibboard element displayed in the gui 
     def func(idx, event):
@@ -84,6 +85,9 @@ class CBMWindow(object):
     self.root.withdraw()
     self.root.title("CBMWindow")
     self.frame = Frame(self.root)
+
+    # Highlight main window when clicked
+    self.root.bind("<Button-1>", lambda e : self.root.attributes("-topmost", True))
 
     self.create_header()
 
@@ -238,6 +242,8 @@ class CBMWindow(object):
 
       # TODO: Add a text (maybe only on_hover for documents)
       #       Maybe also add colage-image for file-list as "popup" or jsut hover
+      #       Also if we can't display an entire text popup the entire text maybe(?)
+      #       Just a lot of hover/right click options would be nice
 
       l.config(font=self.window.font)
       l.grid(row=row, column=column, sticky=W, padx=10)
@@ -254,7 +260,15 @@ class CBMWindow(object):
   
   # Open a popup window for settings
   def open_settings(self):
+    # Try to put settings window at topmost layer if it doesnt exists proceed and create it at topmost layer
+    try:  
+      if self.settings.winfo_exists():
+        self.settings.attributes("-topmost", True) # Overlay
+        return
+    except Exception:
+      pass
     self.settings = Toplevel(self.root)
+    self.settings.attributes("-topmost", True) # Overlay
     self.settings.title("Settings")
     self.settings.geometry("{0}x{1}+{2}+{3}".format(
       int(self.window.width / 2), 
