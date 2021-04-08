@@ -4,6 +4,7 @@ from functools import partial
 from PIL import ImageTk, Image
 
 from clipboard.gui.config import *
+from clipboard.gui.components.CBMButton import CBMButton
 from clipboard.ClipboardManager import update_clipboard_data
 from utils.img import merge_images
 
@@ -15,7 +16,8 @@ class Window(object):
     self.width, self.height = opts.get("size", default_values["size"]) # (width, height)
     self.transparency = opts.get("transparency", default_values["transparency"]) # value between 0 and 1
     self.hide_border = opts.get("hide_border", default_values["hide_border"])
-    
+    self.color_theme = opts.get("color_theme", color_layers)
+
     # For displaying the clipboard
     self.font = opts.get("font", default_values["font"])
     self.element_per_rows = self.height / 20
@@ -63,11 +65,12 @@ class CBMWindow(object):
       "Quit":  self.shutdown
     }
 
-    self.header = Frame(self.root)	
+    self.header = Frame(self.root)
+    self.header.configure(background=self.window.color_theme["layer1"])	
     # Setup header
     i = 0
     for text, func in self.header_buttons.items():
-      b = Button(self.header, text=text, command=func)
+      b = CBMButton(self.header, text, func)
       b.config(font=self.window.font)
       b.grid(row=0, column=i, sticky=W, padx=10, pady=10)
       i += 1
@@ -83,8 +86,15 @@ class CBMWindow(object):
   def run(self):
     self.root = Tk()
     self.root.withdraw()
+
+    # Style main window
     self.root.title("CBMWindow")
+    self.root.configure(background=self.window.color_theme["background"])
+
+
+    # Create and style frame for clipboard
     self.frame = Frame(self.root)
+    self.frame.configure(background=self.window.color_theme["background"])
 
     # Highlight main window when clicked
     self.root.bind("<Button-1>", lambda e : self.root.attributes("-topmost", True))
@@ -226,7 +236,7 @@ class CBMWindow(object):
               images.append("unknown_file_image")
    
       # Set bg color depending on if element is selected or not
-      bg_color = "grey" if idx != self.clipboard._idx else "red"
+      bg_color = self.window.color_theme["layer1"] if idx != self.clipboard._idx else self.window.color_theme["highlighted"]
 
       # Select an image if the current element is an image
       if use_image:
@@ -238,7 +248,7 @@ class CBMWindow(object):
       #       We want to create a compromise between readability and visually pleasing
 
       # Create lable for current element
-      l = Label(self.frame, text=lable_text, image=image, bg=bg_color)
+      l = Label(self.frame, text=lable_text, image=image, bg=bg_color, fg=self.window.color_theme["text"])
 
       # TODO: Add a text (maybe only on_hover for documents)
       #       Maybe also add colage-image for file-list as "popup" or jsut hover

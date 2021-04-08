@@ -84,7 +84,7 @@ def start():
     ("ctrl+alt+d", on_press_remove),
     ("ctrl+alt+c", on_press_clear),
     ("ctrl+alt+p", on_press_print),
-    ("alt+^", on_press_toggle_gui),
+    ("ctrl+alt+w", on_press_toggle_gui),
     ("esc", on_press_terminate)
   }
 

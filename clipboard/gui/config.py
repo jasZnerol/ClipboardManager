@@ -8,11 +8,20 @@ screen_height = GetSystemMetrics(1)
 default_values = {
   "position": (int(screen_width  / 2 - (2/3 * screen_width)  / 2),  int(screen_height / 2 - (4/5 * screen_height) / 1.75)), # center
   "size": (int(2/3 * screen_width) , int(4/5 * screen_height)), # big
-  "transparency": 0.8,
+  "transparency": 0.9,
   "hide_border": False,
   "font": ("Courier", 20),
   "unknown_file_path": os.path.join(os.path.abspath("."), "resources", "unknown_file.png"),
   "image_size": (101, 128)
+}
+
+color_layers = {
+  "background": "#10102D",
+  "layer1": "#1A1131",
+  "layer2": "#271235",
+  "layer3": "#351339",
+  "highlighted": "#3D1435",
+  "text": "white"
 }
 
 # Return the width, length as a tuple for a given window size
